@@ -39,8 +39,8 @@ def main():
     model.eval()
     with torch.no_grad():
         # init
-        img = torch.zeros((1, 3, img_size, img_size), device=device)
-        model(img)
+        # img = torch.zeros((1, 3, img_size, img_size), device=device)
+        # model(img)
 
         img_o = cv2.imread(img_path)  # BGR
         assert img_o is not None, "Image Not Found " + img_path
@@ -84,3 +84,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # a = torch.arange(0,6)
+    # b = a.view(2,3)
+    # c = b.unsqueeze(0)
+    # b = c.squeeze(2)
+    # print(b.shape, c.shape)

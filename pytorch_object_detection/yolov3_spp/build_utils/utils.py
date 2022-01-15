@@ -329,6 +329,14 @@ def non_max_suppression(prediction, conf_thres=0.1, iou_thres=0.6,
     Returns detections with shape:
         nx6 (x1, y1, x2, y2, conf, cls)
     """
+    # conf_thres = 0.1
+    # iou_thres=0
+    # max_num = 1000
+    # print(prediction.size())
+    # print(prediction[0,0,:])
+    # pre = np.ascontiguousarray(prediction.unsqueeze(0))
+    # return pre.tolist()
+
 
     # Settings
     merge = False  # merge for best mAP
@@ -341,9 +349,12 @@ def non_max_suppression(prediction, conf_thres=0.1, iou_thres=0.6,
     output = [None] * prediction.shape[0]
     for xi, x in enumerate(prediction):  # image index, image inference 遍历每张图片
         # Apply constraints
+        print(x.size())
         x = x[x[:, 4] > conf_thres]  # confidence 根据obj confidence虑除背景目标
+        print(x.size())
         x = x[((x[:, 2:4] > min_wh) & (x[:, 2:4] < max_wh)).all(1)]  # width-height 虑除小目标
-
+        print(x.size())
+        
         # If none remain process next image
         if not x.shape[0]:
             continue
@@ -378,20 +389,20 @@ def non_max_suppression(prediction, conf_thres=0.1, iou_thres=0.6,
         # Sort by confidence
         # x = x[x[:, 4].argsort(descending=True)]
 
-        # Batched NMS
-        c = x[:, 5] * 0 if agnostic else x[:, 5]  # classes
-        boxes, scores = x[:, :4].clone() + c.view(-1, 1) * max_wh, x[:, 4]  # boxes (offset by class), scores
-        i = torchvision.ops.nms(boxes, scores, iou_thres)
-        i = i[:max_num]  # 最多只保留前max_num个目标信息
-        if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
-            try:  # update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
-                iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
-                weights = iou * scores[None]  # box weights
-                x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
-                # i = i[iou.sum(1) > 1]  # require redundancy
-            except:  # possible CUDA error https://github.com/ultralytics/yolov3/issues/1139
-                print(x, i, x.shape, i.shape)
-                pass
+        # # Batched NMS
+        # c = x[:, 5] * 0 if agnostic else x[:, 5]  # classes
+        # boxes, scores = x[:, :4].clone() + c.view(-1, 1) * max_wh, x[:, 4]  # boxes (offset by class), scores
+        # i = torchvision.ops.nms(boxes, scores, iou_thres)
+        # i = i[:max_num]  # 最多只保留前max_num个目标信息
+        # if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
+        #     try:  # update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
+        #         iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
+        #         weights = iou * scores[None]  # box weights
+        #         x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
+        #         # i = i[iou.sum(1) > 1]  # require redundancy
+        #     except:  # possible CUDA error https://github.com/ultralytics/yolov3/issues/1139
+        #         print(x, i, x.shape, i.shape)
+        #         pass
 
         output[xi] = x[i]
         if (time.time() - t) > time_limit:

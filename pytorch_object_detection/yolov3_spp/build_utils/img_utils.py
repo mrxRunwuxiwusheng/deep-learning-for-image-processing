@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from matplotlib import pyplot as plt
 
 
 def letterbox(img: np.ndarray,
@@ -19,6 +20,7 @@ def letterbox(img: np.ndarray,
     :return:
     """
 
+    print(img.shape)
     shape = img.shape[:2]  # [h, w]
     if isinstance(new_shape, int):
         new_shape = (new_shape, new_shape)
@@ -50,6 +52,9 @@ def letterbox(img: np.ndarray,
     left, right = int(round(dw - 0.1)), int(round(dw + 0.1))  # 计算左右两侧的padding
 
     img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
+    # img = img[:, :, ::-1]
+    # plt.imshow(img)
+    # plt.show()
     return img, ratio, (dw, dh)
 
 
